@@ -1,0 +1,21 @@
+{% load static %}
+
+<div class="sidebar">
+    <h4 style="padding-left: 10px">Task App</h4>
+
+    <a class="sidebar-link" href="{% url 'index'%}">
+        <div class="sidebar-button" type="button">
+            <img src="{% static 'favicons\home-white.svg' %}"> Home
+        </div>
+    </a>
+
+    <a class="sidebar-link" href="{% url 'task_list' %}">
+        <div class="sidebar-button" type="button">
+            <img src="{% static 'favicons\sendmail-white.svg' %}"> Tasks
+        </div>
+    </a>
+
+    <div class="sidebar-button" type="button">
+        <img src="{% static 'favicons\pocket-white.svg' %}"> Other
+    </div>
+</div>

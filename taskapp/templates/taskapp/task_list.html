@@ -1,0 +1,233 @@
+{% extends 'taskapp/base.html' %}
+{% load static %}
+{% block head %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4>{{ request.user.email }}</h4>
+    <form type="submit" id="addtask">
+        <input type="text" id="new-task" class="form-control" placeholder="Add Task..."></input>
+        <input type="date" id="due-date" class="form-control" value="{{ current_date }}"></input>
+        <button 
+            type="button" 
+            id="new-task-button" 
+            class="btn btn-primary"
+            onclick="addTask()">
+                Add Task
+        </button>
+    </form>
+    <br/>
+    <table class="table table-bordered">
+        <thead>
+            <th></th>
+            <th>Task</th>
+            <th>Due Date</th>
+            <th></th>
+        </thead>
+        <form>
+            <tbody id="task-table">
+            </tbody>
+        </form>
+    </table>
+</div>
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // ---------------------- POPULATING TABLE -------------------------------
+    fetch('http://127.0.0.1:8000/api/tasks/')
+        .then(response => response.json())
+        .then(data => {
+            for (let i = 0; i < data.length; i++) {
+                let mod_date_clean = ""
+                
+                if (data[i].due_date) {
+                    let mod_date = data[i].due_date
+                    let date_string = mod_date.toString()
+                    let mod_date_array = date_string.split('T')
+                    mod_date_clean = mod_date_array[0]
+                    console.log('yes')
+                } else {
+                    
+                    console.log('no');
+                }
+
+                //let task_value = false;
+                //let task_option = "";
+                //let task_value_opp = false;
+                //let task_option_opp = "";
+                if (data[i].completed) {
+                    //task_value = true;
+                    //task_option = "Yes";
+                    //task_value_opp = false;
+                    //task_option_opp = "No";
+                    completed_image = "{% static "favicons\check-circle-green.svg" %}";
+                } else {
+                    //task_value = false;
+                    //task_option = "No";
+                    //task_value_opp = true;
+                    //task_option_opp = "Yes";
+                    completed_image = "{% static "favicons\check-circle-black.svg" %}";
+                }
+
+                delete_task_image = "{% static "favicons\x-black.svg" %}";
+                
+                document.getElementById('task-table').innerHTML += 
+                    '<tr id="item_' + data[i].id + '">' +
+                        '<td id="comp_col_' + data[i].id + '"><input type="image" src=' + completed_image + ' id="completed_' + data[i].id + '" value=' + data[i].completed + ' onclick="completedTask(' + data[i].id + ')" />' + 
+                        '<td><input id="name_' + data[i].id + '" type="text" value="' + data[i].name + '" onblur="editTask(' + data[i].id + ')" class="task-edit-text"></input></td>' +
+                        '<td><input id= "date_' + data[i].id + '" type="date" value="' + mod_date_clean + '" onblur="editTask(' + data[i].id + ')" class="date-edit"></input</td>' +
+                        '<td><input type="image" src=' + delete_task_image + ' onclick="deleteThisRow(' + data[i].id + ')"></input></td>' +
+                    "</tr>";
+            };
+        });
+    
+        // --------------------- FOR ADDING TASKS -------------------------------
+    function addTask() {
+        const name = document.getElementById('new-task').value;
+        const due_date = document.getElementById('due-date').value;
+
+        console.log(due_date)
+        if (name !== "") {
+            const completed = false;
+            const data = {
+                name: name,
+                created_by: {{ request.user.id }},
+                due_date: due_date,
+                completed: completed,
+            };
+
+            fetch('http://127.0.0.1:8000/api/tasks/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let mod_date_clean = ""
+                    if (data.due_date) {
+                        let mod_date = data.due_date
+                        let date_string = mod_date.toString()
+                        let mod_date_array = date_string.split('T')
+                        mod_date_clean = mod_date_array[0]
+                    }
+
+                    if (data.completed) {
+                        completed_image = "{% static "favicons\check-circle-green.svg" %}";
+                    } else {
+                        completed_image = "{% static "favicons\check-circle-black.svg" %}";
+                    }
+
+                    document.getElementById('task-table').innerHTML += 
+                        '<tr id="item_' + data.id + '">' +
+                            '<td id="comp_col_' + data.id + '"><input type="image" src=' + completed_image + ' id="completed_' + data.id + '" value=' + data.completed + ' onclick="completedTask(' + data.id + ')" />' +
+                            '<td><input id="name_' + data.id + '" type="text" value="' + data.name + '" onblur="editTask(' + data.id + ')" class="task-edit-text"></input></td>' +
+                            '<td><input id="date_' + data.id + '" type="date" value="' + mod_date_clean + '" onblur="editTask(' + data.id + ')" class="date-edit"></input</td>' +
+                            '<td><input type="image" src=' + delete_task_image + ' onclick="deleteThisRow(' + data.id + ')"></input></td>' +
+                        "</tr>";
+                    document.getElementById('new-task').value = "";
+                });
+
+            console.log(data);
+            console.log('New Item Clicked!');
+                console.log("Not Blank")
+        } else {
+            console.log("Blank!")
+        }
+        
+    };
+
+    // ----------------------- FOR DELETING TASKS -------------------------
+    function deleteThisRow(row_id) {
+        let element = document.getElementById('item_' + row_id);
+        element.remove()
+        console.log(element);
+        console.log('Delete Clicked', row_id);
+        return fetch('http://127.0.0.1:8000/api/tasks/' + String(row_id), {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        }).then(() => {
+            console.log('removed')
+        });
+    };
+
+    // ----------------------- FOR EDITING TASKS -------------------------
+    function editTask(task_id) {
+        let name = document.getElementById('name_' + task_id).value;
+        let due_date = document.getElementById('date_' + task_id).value;
+
+        console.log(name)
+        console.log(due_date)
+        const data = {
+            name: name,
+            due_date: due_date,
+        }
+
+        console.log('Name Updated', task_id);
+        return fetch('http://127.0.0.1:8000/api/tasks/' + String(task_id) + '/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify(data),
+        }).then(() => {
+            console.log('Changed!')
+        });
+    };
+
+    // ----------------------- FOR MARKING TASKS AS COMPLETED -----------------
+    function completedTask(task_id) {
+        let completed = document.getElementById('completed_' + task_id).value;
+        console.log("Current Value: " + completed)
+        if (completed == "true") {
+            completed = false;
+            completed_image = "{% static "favicons\check-circle-black.svg" %}";
+        } else {
+            completed = true;
+            completed_image = "{% static "favicons\check-circle-green.svg" %}";
+        }
+
+        const data = {
+            completed: completed,
+        };
+        console.log("New Value: " + completed)
+
+        return fetch('http://127.0.0.1:8000/api/tasks/' + String(task_id) + '/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify(data),
+        }).then(() => {
+            document.getElementById('comp_col_' + task_id).innerHTML = '<input type="image" src=' + completed_image + ' id="completed_' + task_id + '" value=' + completed + ' onclick="completedTask(' + task_id + ')" />';
+        });
+    };
+
+</script>
+
+{% endblock %}
