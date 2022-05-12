@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('', views.index, name="index"),
     path('task_list', views.task_list, name="task_list"),
+    path('table_practice', views.table_practice, name="table_practice"),
 ]
 
 #urlpatterns = format_suffix_patterns(urlpatterns)
