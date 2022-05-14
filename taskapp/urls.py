@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('', views.index, name="index"),
     path('task_list', views.task_list, name="task_list"),
+    path('task_list_alt', views.task_list_alt, name="task_list_alt"),
     path('table_practice', views.table_practice, name="table_practice"),
 ]
 

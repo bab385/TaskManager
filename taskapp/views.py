@@ -22,8 +22,20 @@ def task_list(request):
     tasks = Task.objects.all()
     today = date.today()
     current_date = today.strftime("%Y-%m-%d")
-    print(current_date)
+    # print(current_date)
+    print(tasks)
     return render(request, 'taskapp/task_list.html', {
+        'tasks': tasks,
+        'current_date': current_date,
+    })
+
+
+def task_list_alt(request):
+    tasks = Task.objects.all()
+    today = date.today()
+    current_date = today.strftime("%Y-%m-%d")
+    print(current_date)
+    return render(request, 'taskapp/task_list_alt.html', {
         'tasks': tasks,
         'current_date': current_date,
     })

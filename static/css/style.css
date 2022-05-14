@@ -12,7 +12,7 @@ div.sidebar {
 
 div.main {
     margin-left: 200px;
-    padding: 20px;
+    /*padding: 20px;*/
 }
 
 .sidebar-button {
@@ -53,4 +53,26 @@ input[type=date].date-edit {
     border-bottom-style: hidden;
     background-color: white;
     width: 100%;
+}
+
+.completed-col {
+    width: 40px;
+    text-align: center;
+}
+
+.due-date-col {
+    width: 100px;
+}
+
+.delete-col {
+    width: 40px;
+    text-align: center;
+}
+
+input.complete {
+    color: gray;
+}
+
+tr {
+    display: "";
 }
