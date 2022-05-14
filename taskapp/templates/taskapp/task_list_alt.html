@@ -24,7 +24,12 @@
     <form type="submit" id="addtask">
         <button type="button" id="try-add-task" class="btn btn-primary btn-sm" onclick="addNewTaskRow()">Add Task +</button>
         <input id="search-field" type="text" placeholder="Search...">
-        <button type="button" id="hide-completed" class="btn btn-secondary btn-sm">Hide Completed</button>
+        <!--<button type="button" id="hide-completed" class="btn btn-secondary btn-sm">Hide Completed</button>-->
+        <select id="filter-complete">
+            <option id="show-all" value="all">All Tasks</option>
+            <option id="show-complete-only" value="complete">Complete</option>
+            <option id="show-incomplete-only" value="incomplete">Incomplete</option>
+        </select>
     </form>
     <br/>
     <table id="table" class="table table-bordered">
@@ -381,7 +386,7 @@
         })
     }
 
-    // -------------- HIDES COMPLETED ROWS --------------------------
+    /* -------------- HIDES COMPLETED ROWS --------------------------
     const hideCompleted = document.getElementById('hide-completed')
     hideCompleted.addEventListener('click', function () {
         const item_row = document.getElementsByClassName('item-row-comp')
@@ -400,6 +405,43 @@
                 }
             }
         }
+    })
+    */
+
+    // ----------- SELECT DROPDOWN FOR FILTERING COMPLETE, INCOMPLETE, ALL -------------------
+    const completeFilterOption = document.getElementById('filter-complete')
+    completeFilterOption.addEventListener('change', function() {
+        const item_row = document.getElementsByClassName('item-row-comp')
+        if (completeFilterOption.value == "complete") {
+            for (i = 0; i < item_row.length; i++) {
+                const children_list = item_row[i].children[1].children[0].classList
+                for (x = 0; x < children_list.length; x++) {
+                    if (children_list[x] == "incomplete") {
+                        item_row[i].style.display = "none"
+                    } else {
+                        item_row[i].style.display = ""
+                    }
+                }
+            }
+        } else if (completeFilterOption.value == "incomplete") {
+            for (i = 0; i < item_row.length; i++) {
+                const children_list = item_row[i].children[1].children[0].classList
+                for (x = 0; x < children_list.length; x++) {
+                    if (children_list[x] == "complete") {
+                        item_row[i].style.display = "none"
+                    } else {
+                        item_row[i].style.display = ""
+                    }
+                }
+            }
+        } else {
+            for (i = 0; i < item_row.length; i++) {
+                const children_list = item_row[i].children[1].children[0].classList
+                for (x = 0; x < children_list.length; x++) {
+                    item_row[i].style.display = ""
+                }
+            }
+        }   
     })
 
 </script>
