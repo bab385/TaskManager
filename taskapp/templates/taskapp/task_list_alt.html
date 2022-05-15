@@ -340,6 +340,16 @@
                 '"><input type="image" src=' + delete_image + 
                 ' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="deleteTaskModal(' + id + ')"></input></td>' +
         "</tr>";
+        
+        let editText = document.getElementsByClassName('task-edit-text')
+        for (let x = 0; x < editText.length; x++) {
+            let change_task_name = editText[x].id
+            editText[x].addEventListener('keydown', function (e) {
+                if (e.key === "Enter") {
+                    document.getElementById(change_task_name).blur()
+                }
+            })
+        }
     };
 
     // ------------------------- DELETE TASK WITH MODAL CONFIRMATION -----------------------
@@ -378,7 +388,7 @@
     }
 
     // ------------ ALLOWS YOU TO SAVE A TASK BY HITTING ENTER ------------
-    // --------------THIS CRASHES OUT WHEN I ADD A NEW TASK..................................................................................................................
+
     let editText = document.getElementsByClassName('task-edit-text')
     for (let x = 0; x < editText.length; x++) {
         let change_task_name = editText[x].id
