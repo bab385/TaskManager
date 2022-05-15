@@ -34,10 +34,10 @@
     <br/>
     <table id="table" class="table table-bordered">
         <thead>
-            <th></th>
-            <th>Task</th>
-            <th>Due Date</th>
-            <th></th>
+            <th class="no-sort" onclick="sortTableCol(0)"></th>
+            <th class="no-sort" onclick="sortTableCol(1)">Task</th>
+            <th class="no-sort" onclick="sortTableCol(2)">Due Date</th>
+            <th class="no-sort"></th>
         </thead>
             <tbody id="task-table-body">
                 {% for task in tasks %}
@@ -323,7 +323,7 @@
         }
 
         document.getElementById('task-table-body').innerHTML += 
-        '<tr class="item-row" id="item-row-' + id + '">' +
+        '<tr class="item-row-comp" id="item-row-' + id + '">' +
             //completed column
             '<td class="completed-col" id="completed-cell-' + id + '"><input type="image" src=' +
                 completed_image + ' id="completed_' + id + '" value=' + completed +
@@ -331,12 +331,14 @@
             //task name column
             '<td class="task-name-col" id="task-name-cell-' + id +
                 '"><input id="task-name-' + id + '" type="text" value="' + name + '" ' + blur + 
-                ' class="task-edit-text"></input></td>' +
+                ' class="task-edit-text incomplete"></input></td>' +
             //due date column
-            '<td class="due-date-col"><input id="due-date-' + id + '" type="date" value="' + date + 
+            '<td class="due-date-col" id="due-date-cell-' + id + '"><input id="due-date-' + id + '" type="date" value="' + date + 
                 '" onblur="dueDateChange(' + id + ')" class="date-edit"></input</td>' +
             //delete task column
-            '<td class="delete-col"><input type="image" src=' + delete_image + ' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="deleteTaskModal(' + id + ')"></input></td>' +
+            '<td class="delete-col" id="delete-cell-' + id + 
+                '"><input type="image" src=' + delete_image + 
+                ' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="deleteTaskModal(' + id + ')"></input></td>' +
         "</tr>";
     };
 
@@ -376,8 +378,9 @@
     }
 
     // ------------ ALLOWS YOU TO SAVE A TASK BY HITTING ENTER ------------
-    var editText = document.getElementsByClassName('task-edit-text')
-    for (x = 0; x < editText.length; x++) {
+    // --------------THIS CRASHES OUT WHEN I ADD A NEW TASK..................................................................................................................
+    let editText = document.getElementsByClassName('task-edit-text')
+    for (let x = 0; x < editText.length; x++) {
         let change_task_name = editText[x].id
         editText[x].addEventListener('keydown', function (e) {
             if (e.key === "Enter") {
@@ -385,6 +388,7 @@
             }
         })
     }
+    
 
     /* -------------- HIDES COMPLETED ROWS --------------------------
     const hideCompleted = document.getElementById('hide-completed')
@@ -443,6 +447,63 @@
             }
         }   
     })
+    
+    // ---------------- SORT A COLUMN -----------------------
+    function sortTableCol(n) {
+        const item_row = document.getElementsByClassName('item-row-comp')
+        const tbody = document.getElementById('task-table-body')
+        const theads = document.getElementsByTagName('th')
+        const values = []
+        const rows = []
+        let sorted_values
+
+        // Created an array of all task names and task rows
+        for (let i = 0; i < item_row.length; i++) {
+            const task_value = item_row[i].children[n].children[0].value
+            values.push(task_value.toLowerCase())
+            rows.push(item_row[i])
+        }
+
+        // reset class on each table head so that ascending always occurs first
+        for (let i = 0; i < theads.length; i++) {
+            if (i != n) {
+                theads[i].classList.remove("desc")
+                theads[i].classList.remove("asc")
+                theads[i].classList.add("no-sort")
+            }
+        }
+
+        // choose ascending or descending based on class of table head
+        sort_class = theads[n].classList.value //change 1 to n
+        if (sort_class.includes("no-sort") || sort_class.includes("desc")) {
+            //change to ascending if there is no sort or it's descending
+            sorted_values = values.sort()
+            theads[n].classList.remove("no-sort")
+            theads[n].classList.remove("desc")
+            theads[n].classList.add('asc')
+        } else if (sort_class.includes("asc")) {
+            // change to descending if it's currently ascending
+            sorted_values = values.reverse()
+            theads[n].classList.remove("asc")
+            theads[n].classList.add('desc')
+        }
+        
+        //removes all rows from the table
+        for (let i = item_row.length - 1; i > -1; i--) {
+            item_row[i].remove()
+        }
+         
+        for (let i = 0; i < values.length; i++) {
+            // run through each value from the column in ascending or descending order
+            for (let j = 0; j < rows.length; j++) {
+                //when the value in the row array matches the asc or desc item, append the row
+                row_value = rows[j].children[n].children[0].value
+                if (sorted_values[i] == row_value.toLowerCase()) {
+                    tbody.appendChild(rows[j])
+                }
+            }
+        }
+    }
 
 </script>
 
