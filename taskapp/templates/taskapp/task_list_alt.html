@@ -4,16 +4,14 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
         // ----------------------- Table Search -------------------------
-        /*
         $(document).ready(function(){
             $("#search-field").on("keyup", function() {
-                var value = $(this).val().toLowerCase();
+                const value = $(this).val().toLowerCase();
                 $("#task-table tr").filter(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 })
             })
         })
-        */
     </script>
 {% endblock %}
 
@@ -22,83 +20,31 @@
 <div class="p-4">
     <h4>{{ request.user.email }}</h4>
     <form type="submit" id="addtask">
-        <button type="button" id="try-add-task" class="btn btn-primary btn-sm" onclick="addNewTaskRow()">Add Task +</button>
+        <!--<input type="text" id="new-task" class="form-control" placeholder="Add Task..."></input><br/>
+        <input type="date" id="due-date" class="form-control" value="{{ current_date }}"></input>
+        <button 
+            type="button" 
+            id="new-task-button" 
+            class="btn btn-primary"
+            onclick="addTask()">
+                Add Task
+        </button>-->
+        <button type="button" id="try-add-task" class="btn btn-secondary btn-sm" onclick="addNewTaskRow()">Add Task +</button>
         <input id="search-field" type="text" placeholder="Search...">
-        <!--<button type="button" id="hide-completed" class="btn btn-secondary btn-sm">Hide Completed</button>-->
-        <select id="filter-complete" class="form-select-1 form-select-sm-1">
-            <option id="show-all" value="all">All Tasks</option>
-            <option id="show-complete-only" value="complete">Complete</option>
-            <option id="show-incomplete-only" value="incomplete">Incomplete</option>
-        </select>
     </form>
     <br/>
     <table id="table" class="table table-bordered">
         <thead>
-            <th class="sortable no-sort" onclick="sortTableCol(0)"></th>
-            <th class="sortable no-sort" onclick="sortTableCol(1)">Task</th>
-            <th class="sortable no-sort" onclick="sortTableCol(2)">Due Date</th>
+            <th></th>
+            <th>Task</th>
+            <th>Due Date</th>
+            <th></th>
             <th></th>
         </thead>
-            <tbody id="task-table-body">
-                {% for task in tasks %}
-                    <tr class="item-row-comp" id="item-row-{{task.id}}">
-                        <td class="completed-col" id="completed-cell-{{task.id}}">
-                            {% if task.completed %}
-                                <input
-                                    type="image" 
-                                    src="{% static "favicons\check-circle-green.svg" %}" 
-                                    id="completed-image-{{task.id}}"
-                                    value="true"
-                                    onclick="completedTask({{task.id}})"
-                                />
-                            {% else %}
-                                <input 
-                                    type="image" 
-                                    src="{% static "favicons\check-circle-black.svg" %}"
-                                    id="completed-image-{{task.id}}"
-                                    value="false"
-                                    onclick="completedTask({{task.id}})"
-                                />
-                            {% endif %}
-                        </td>
-                        <td class="task-name-col" id="task-name-cell-{{task.id}}">
-                            <input 
-                                {% if task.completed %}
-                                    class="task-edit-text complete"
-                                {% else %} 
-                                    class="task-edit-text incomplete"
-                                {% endif %}
-                                type="text" 
-                                value="{{task.name}}" 
-                                id="task-name-{{task.id}}" 
-                                onfocus="storeOldName({{task.id}})"
-                                onblur="editTask({{task.id}})"
-                            />
-                        </td>
-                        <td class="due-date-col" id="due-date-cell-{{task.id}}">
-                            <input 
-                                {% if task.completed %}
-                                    class="date-edit complete"
-                                {% else %}
-                                    class="date-edit incomplete"
-                                {% endif %}
-                                type="date" value="{{task.due_date|date:"Y-m-d"}}"
-                                id="due-date-{{task.id}}"
-                                onblur="dueDateChange({{task.id}})"
-                            />
-                        </td>
-                        <td class="delete-col" id="delete-cell-{{task.id}}">
-                            <input
-                                type="image" 
-                                src="{% static "favicons\x-black.svg" %}" 
-                                data-bs-toggle="modal"
-                                data-bs-target="#exampleModal"
-                                onclick="deleteTaskModal({{task.id}})"
-                            />
-                        </td>
-                    </tr>
-                {% endfor %}
+        <form>
+            <tbody id="task-table">
             </tbody>
+        </form>
     </table>
 </div>
 
@@ -158,44 +104,123 @@
 
     const csrftoken = getCookie('csrftoken');
 
-    // ---------------------- STORE OLD TASK VALUE ----------------------
-    function storeOldName(task_id) {
-        let old_name = document.getElementById('task-name-' + task_id).value
-        console.log(old_name)
-        //return old_name
-    }
+    // ---------------------- POPULATING TABLE -------------------------------
     
-    // ----------------------- FOR EDITING TASK NAMES -------------------------
-    function editTask(task_id) {
-        let name = document.getElementById('task-name-' + task_id).value;
-        const name_hold = name
+    fetch('http://127.0.0.1:8000/api/tasks/')
+        .then(response => response.json())
+        .then(data => {
+            for (let i = 0; i < data.length; i++) {
+                let mod_date_clean = "";
+                let ready_date = "";
+
+                if (data[i].due_date) {
+                    let mod_date = data[i].due_date
+                    let date_string = mod_date.toString()
+                    let mod_date_array = date_string.split('T')
+                    mod_date_clean = mod_date_array[0]
+                }
+                
+                if (data[i].completed) {
+                    completed_image = "{% static "favicons\check-circle-green.svg" %}";
+
+                } else {
+                    completed_image = "{% static "favicons\check-circle-black.svg" %}";
+                }
+                
+                delete_task_image = "{% static "favicons\x-black.svg" %}";
+
+                addTaskRow(delete_task_image, data[i].id, data[i].completed, data[i].name, mod_date_clean, "blur_on")
+                
+            };
+
+        });
+    
+
+    
+    // --------------------- FOR ADDING TASKS (NOT USING ANYMORE) -------------------------------
+    function addTask() {
+        const name = document.getElementById('new-task').value;
+
         if (name !== "") {
-            console.log(name)
             const data = {
                 name: name,
-            }
+                created_by: {{ request.user.id }},
+            };
 
-            console.log('Name Updated', task_id);
-            return fetch('http://127.0.0.1:8000/api/tasks/' + String(task_id) + '/', {
-                method: 'PATCH',
+            fetch('http://127.0.0.1:8000/api/tasks/', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken,
                 },
                 body: JSON.stringify(data),
-            }).then(() => {
-                console.log('Changed!')
-            });
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let mod_date_clean = ""
+                    if (data.due_date) {
+                        let mod_date = data.due_date
+                        let date_string = mod_date.toString()
+                        let mod_date_array = date_string.split('T')
+                        mod_date_clean = mod_date_array[0]
+                    }
+
+                    addTaskRow(delete_task_image, data.id, data.completed, data.name, mod_date_clean, "blur_on");
+
+                    document.getElementById('new-task').value = ""
+                });
+
+            console.log(data);
+            console.log('New Item Clicked!');
+                console.log("Not Blank")
         } else {
-            document.getElementById('task-name-' + task_id).innertext = name
-            console.log(old_name + 'this line')
+            console.log("Blank!")
         }
+        
+    };
+
+    // ----------------------- FOR DELETING TASKS (NOT USING ANYMORE) -------------------------
+    function deleteThisRow(row_id) {
+        let element = document.getElementById('item_' + row_id);
+        element.remove()
+        console.log(element);
+        console.log('Delete Clicked', row_id);
+        return fetch('http://127.0.0.1:8000/api/tasks/' + String(row_id), {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        }).then(() => {
+            console.log('removed')
+        });
+    };
+
+    // ----------------------- FOR EDITING TASK NAMES -------------------------
+    function editTask(task_id) {
+        let name = document.getElementById('name_' + task_id).value;
+
+        console.log(name)
+        const data = {
+            name: name,
+        }
+
+        console.log('Name Updated', task_id);
+        return fetch('http://127.0.0.1:8000/api/tasks/' + String(task_id) + '/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify(data),
+        }).then(() => {
+            console.log('Changed!')
+        });
     };
 
     // --------------------- FOR CHANGING DUE DATE -----------------------
     function dueDateChange(task_id) {
-        const due_date = document.getElementById('due-date-' + task_id).value;
-        console.log("date: ", due_date)
+        const due_date = document.getElementById('date_change_' + task_id).value;
         if (due_date !== '') {
             const data = {
                 due_date: due_date,
@@ -221,7 +246,7 @@
 
     // ----------------------- FOR MARKING TASKS AS COMPLETED -----------------
     function completedTask(task_id) {
-        let completed = document.getElementById('completed-image-' + task_id).value;
+        let completed = document.getElementById('completed_' + task_id).value;
         console.log("Current Value: " + completed)
         if (completed == "true") {
             completed = false;
@@ -230,7 +255,7 @@
             completed = true;
             completed_image = "{% static "favicons\check-circle-green.svg" %}";
         }
-        
+
         const data = {
             completed: completed,
         };
@@ -244,23 +269,8 @@
             },
             body: JSON.stringify(data),
         }).then(() => {
-            document.getElementById('completed-cell-' + task_id).innerHTML = '<input type="image" src=' + completed_image + ' id="completed-image-' + task_id + '" value=' + completed + ' onclick="completedTask(' + task_id + ')" />';
-            let task_name = document.getElementById('task-name-' + task_id)
-            let due_date = document.getElementById('due-date-' + task_id)
-            if (completed == true) {
-                task_name.classList.remove('incomplete')
-                task_name.classList.add('complete')
-                due_date.classList.remove('incomplete')
-                due_date.classList.add('complete')
-            } else {
-                task_name.classList.remove('complete')
-                task_name.classList.add('incomplete')
-                due_date.classList.remove('complete')
-                due_date.classList.add('incomplete')
-            }
-            console.log('change completed')
+            document.getElementById('comp_col_' + task_id).innerHTML = '<input type="image" src=' + completed_image + ' id="completed_' + task_id + '" value=' + completed + ' onclick="completedTask(' + task_id + ')" />';
         });
-        
     };
 
     // ----------------------- ADDS BLANK ROW AT BOTTOM OF TABLE ----------------------------
@@ -270,9 +280,9 @@
 
         addTaskRow(delete_task_image)
 
-        document.getElementById('task-name-0').focus();
+        document.getElementById('name_0').focus();
         
-        let new_task = document.getElementById('task-name-0')
+        let new_task = document.getElementById('name_0')
         new_task.addEventListener('blur', function () {
             if (new_task.value !== "") {
                 console.log(new_task.value)
@@ -291,12 +301,12 @@
                 })
                     .then(response => response.json())
                     .then(data => {
-                        let delete_row = document.getElementById('item-row-0')
+                        let delete_row = document.getElementById('item_0')
                         delete_row.remove()
                         addTaskRow(delete_task_image, data.id, data.completed, data.name, "", "blur_on");
                     })
             } else {
-                let delete_row = document.getElementById('item-row-0')
+                let delete_row = document.getElementById('item_0')
                 console.log(delete_row)
                 delete_row.remove()
                 console.log('Blank')
@@ -322,47 +332,37 @@
             completed_image = "{% static "favicons\check-circle-black.svg" %}";
         }
 
-        document.getElementById('task-table-body').innerHTML += 
-        '<tr class="item-row-comp" id="item-row-' + id + '">' +
+        document.getElementById('task-table').innerHTML += 
+        '<tr class="table-row" id="item_' + id + '">' +
             //completed column
-            '<td class="completed-col" id="completed-cell-' + id + '"><input type="image" src=' +
+            '<td id="comp_col_' + id + '" style="width:40px; text-align: center;"><input type="image" src=' +
                 completed_image + ' id="completed_' + id + '" value=' + completed +
-                ' onclick="completedTask(' + id + ')" />' +
+                 ' onclick="completedTask(' + id + ')" />' +
             //task name column
-            '<td class="task-name-col" id="task-name-cell-' + id +
-                '"><input id="task-name-' + id + '" type="text" value="' + name + '" ' + blur + 
-                ' class="task-edit-text incomplete"></input></td>' +
+            '<td><input id="name_' + id + '" type="text" value="' + name + '" ' + blur + ' class="task-edit-text"></input></td>' +
             //due date column
-            '<td class="due-date-col" id="due-date-cell-' + id + '"><input id="due-date-' + id + '" type="date" value="' + date + 
-                '" onblur="dueDateChange(' + id + ')" class="date-edit"></input</td>' +
+            '<td style="width:100px;"><input id="date_change_' + id + '" type="date" value="' + date + '" onblur="dueDateChange(' + id + ')" class="date-edit"></input</td>' +
             //delete task column
-            '<td class="delete-col" id="delete-cell-' + id + 
-                '"><input type="image" src=' + delete_image + 
-                ' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="deleteTaskModal(' + id + ')"></input></td>' +
+            //'<td style="width:40px; text-align: center;"><input type="image" src=' + delete_image + ' onclick="deleteThisRow(' + id + ')"></input></td>' +
+            //delete task column
+            '<td style="width:40px; text-align: center;"><input type="image" src=' + delete_image + ' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="deleteTaskModal(' + id + ')"></input></td>' +
+            //blank column
+            '<td style="width:200px;"></td>' +
         "</tr>";
-        
-        let editText = document.getElementsByClassName('task-edit-text')
-        for (let x = 0; x < editText.length; x++) {
-            let change_task_name = editText[x].id
-            editText[x].addEventListener('keydown', function (e) {
-                if (e.key === "Enter") {
-                    document.getElementById(change_task_name).blur()
-                }
-            })
-        }
     };
 
     // ------------------------- DELETE TASK WITH MODAL CONFIRMATION -----------------------
     function deleteTaskModal(task_id) {
         let modal_text = document.getElementById('modal_div')
-        let name = document.getElementById('task-name-' + task_id).value
+        let name = document.getElementById('name_' + task_id).value
         console.log(name)
         modal_text.innerHTML = "Are you sure you want to delete task:<br/>" + name
 
         let delete_button = document.getElementById('task-delete')
         delete_button.addEventListener('click', function() {
-            let element = document.getElementById('item-row-' + task_id);
+            let element = document.getElementById('item_' + task_id);
             element.remove()
+            //console.log(element);
             console.log('Delete Clicked', task_id);
             return fetch('http://127.0.0.1:8000/api/tasks/' + String(task_id), {
                 method: 'DELETE',
@@ -376,7 +376,7 @@
         })
     }
 
-    // -------------------------- ACTIVATES THE TOAST ----------------- 
+    /* -------------------------- ACTIVATES THE TOAST ----------------- */
     var toastTrigger = document.getElementById('task-delete')
     var toastLiveExample = document.getElementById('liveToast')
     if (toastTrigger) {
@@ -387,133 +387,6 @@
         })
     }
 
-    // ------------ ALLOWS YOU TO SAVE A TASK BY HITTING ENTER ------------
-
-    let editText = document.getElementsByClassName('task-edit-text')
-    for (let x = 0; x < editText.length; x++) {
-        let change_task_name = editText[x].id
-        editText[x].addEventListener('keydown', function (e) {
-            if (e.key === "Enter") {
-                document.getElementById(change_task_name).blur()
-            }
-        })
-    }
-    
-
-    /* -------------- HIDES COMPLETED ROWS --------------------------
-    const hideCompleted = document.getElementById('hide-completed')
-    hideCompleted.addEventListener('click', function () {
-        const item_row = document.getElementsByClassName('item-row-comp')
-        for (i = 0; i < item_row.length; i++) {
-            const children_list = item_row[i].children[1].children[0].classList
-            for (x = 0; x < children_list.length; x++) {
-                let row_display = item_row[i].style.display
-                if (children_list[x] == "complete") {
-                    if (row_display == "none") {
-                        document.getElementById('hide-completed').innerText = "Hide Completed"
-                        item_row[i].style.display = ""
-                    } else {
-                        document.getElementById('hide-completed').innerText = "Show Completed"
-                        item_row[i].style.display = "none"
-                    }
-                }
-            }
-        }
-    })
-    */
-
-    // ----------- SELECT DROPDOWN FOR FILTERING COMPLETE, INCOMPLETE, ALL -------------------
-    const completeFilterOption = document.getElementById('filter-complete')
-    completeFilterOption.addEventListener('change', function() {
-        const item_row = document.getElementsByClassName('item-row-comp')
-        if (completeFilterOption.value == "complete") {
-            for (i = 0; i < item_row.length; i++) {
-                const children_list = item_row[i].children[1].children[0].classList
-                for (x = 0; x < children_list.length; x++) {
-                    if (children_list[x] == "incomplete") {
-                        item_row[i].style.display = "none"
-                    } else {
-                        item_row[i].style.display = ""
-                    }
-                }
-            }
-        } else if (completeFilterOption.value == "incomplete") {
-            for (i = 0; i < item_row.length; i++) {
-                const children_list = item_row[i].children[1].children[0].classList
-                for (x = 0; x < children_list.length; x++) {
-                    if (children_list[x] == "complete") {
-                        item_row[i].style.display = "none"
-                    } else {
-                        item_row[i].style.display = ""
-                    }
-                }
-            }
-        } else {
-            for (i = 0; i < item_row.length; i++) {
-                const children_list = item_row[i].children[1].children[0].classList
-                for (x = 0; x < children_list.length; x++) {
-                    item_row[i].style.display = ""
-                }
-            }
-        }   
-    })
-    
-    // ---------------- SORT A COLUMN -----------------------
-    function sortTableCol(n) {
-        const item_row = document.getElementsByClassName('item-row-comp')
-        const tbody = document.getElementById('task-table-body')
-        const theads = document.getElementsByTagName('th')
-        const values = []
-        const rows = []
-        let sorted_values
-
-        // Created an array of all task names and task rows
-        for (let i = 0; i < item_row.length; i++) {
-            const task_value = item_row[i].children[n].children[0].value
-            values.push(task_value.toLowerCase())
-            rows.push(item_row[i])
-        }
-
-        // reset class on each table head so that ascending always occurs first
-        for (let i = 0; i < theads.length; i++) {
-            if (i != n) {
-                theads[i].classList.remove("desc")
-                theads[i].classList.remove("asc")
-                theads[i].classList.add("no-sort")
-            }
-        }
-
-        // choose ascending or descending based on class of table head
-        sort_class = theads[n].classList.value //change 1 to n
-        if (sort_class.includes("no-sort") || sort_class.includes("desc")) {
-            //change to ascending if there is no sort or it's descending
-            sorted_values = values.sort()
-            theads[n].classList.remove("no-sort")
-            theads[n].classList.remove("desc")
-            theads[n].classList.add('asc')
-        } else if (sort_class.includes("asc")) {
-            // change to descending if it's currently ascending
-            sorted_values = values.reverse()
-            theads[n].classList.remove("asc")
-            theads[n].classList.add('desc')
-        }
-        
-        //removes all rows from the table
-        for (let i = item_row.length - 1; i > -1; i--) {
-            item_row[i].remove()
-        }
-         
-        for (let i = 0; i < values.length; i++) {
-            // run through each value from the column in ascending or descending order
-            for (let j = 0; j < rows.length; j++) {
-                //when the value in the row array matches the asc or desc item, append the row
-                row_value = rows[j].children[n].children[0].value
-                if (sorted_values[i] == row_value.toLowerCase()) {
-                    tbody.appendChild(rows[j])
-                }
-            }
-        }
-    }
 
 </script>
 
