@@ -14,6 +14,29 @@
             })
         })
         */
+
+        $(document).ready(function(){
+            $('tr').mouseenter(function(){
+                $(this).css("background-color", "#e8e8e8")
+                $(this).children().children().css("background-color", "#e8e8e8")
+                $('th').css("background-color", "white")
+            })
+            $('tr').mouseleave(function(){
+                $(this).css({"background-color": "white", "border-color": "#dee2e6"})
+                $(this).children().children().css("background-color", "white")
+            })
+
+            $('td').mouseenter(function(){
+                $(this).css({"border-color": "black", "border-width": "1px"})
+            })
+            $('td').mouseleave(function(){
+                $(this).css("border-color", "")
+            })
+            $('input').focus(function(){
+                $(this).css("background-color", "white")
+            })
+        })
+        
     </script>
 {% endblock %}
 
@@ -22,19 +45,28 @@
 <div class="p-4">
     <h4>{{ request.user.email }}</h4>
     <form type="submit" id="addtask">
-        <button type="button" id="try-add-task" class="btn btn-primary btn-sm" onclick="addNewTaskRow()">Add Task +</button>
-        <input id="search-field" type="text" placeholder="Search...">
-        <!--<button type="button" id="hide-completed" class="btn btn-secondary btn-sm">Hide Completed</button>-->
-        <select id="filter-complete" class="form-select-1 form-select-sm-1">
-            <option id="show-all" value="all">All Tasks</option>
-            <option id="show-complete-only" value="complete">Complete</option>
-            <option id="show-incomplete-only" value="incomplete">Incomplete</option>
-        </select>
+        <div class="row">
+            <div class="col">
+                <button type="button" id="try-add-task" class="btn btn-primary btn-sm" onclick="addNewTaskRow()">Add Task +</button>
+            </div>
+            <div class="col">
+                <select id="filter-complete" class="form-select-1 form-select-sm-1">
+                    <option id="show-all" value="all">All Tasks</option>
+                    <option id="show-complete-only" value="complete">Complete</option>
+                    <option id="show-incomplete-only" value="incomplete">Incomplete</option>
+                </select>
+            </div>
+            <div class="col" style="text-align: right">
+                <input id="search-field" type="text" placeholder="Search...">
+                <!--<button type="button" id="hide-completed" class="btn btn-secondary btn-sm">Hide Completed</button>-->
+            </div>
+        </div>
+
     </form>
     <br/>
-    <table id="table" class="table table-bordered">
+    <table id="table" class="">
         <thead>
-            <th class="sortable no-sort" onclick="sortTableCol(0)"></th>
+            <th class="sortable no-sort" onclick="sortTableCol(0)" style="text-align: center;"></th>
             <th class="sortable no-sort" onclick="sortTableCol(1)">Task</th>
             <th class="sortable no-sort" onclick="sortTableCol(2)">Due Date</th>
             <th></th>
@@ -294,6 +326,27 @@
                         let delete_row = document.getElementById('item-row-0')
                         delete_row.remove()
                         addTaskRow(delete_task_image, data.id, data.completed, data.name, "", "blur_on");
+
+                        //reinstates the hover functions on table after adding item. They disappear otherwise
+                        $('tr').mouseenter(function(){
+                            $(this).css("background-color", "#e8e8e8")
+                            $(this).children().children().css("background-color", "#e8e8e8")
+                            $('th').css("background-color", "white")
+                        })
+                        $('tr').mouseleave(function(){
+                            $(this).css({"background-color": "white", "border-color": "#dee2e6"})
+                            $(this).children().children().css("background-color", "white")
+                        })
+
+                        $('td').mouseenter(function(){
+                            $(this).css({"border-color": "black", "border-width": "1px"})
+                        })
+                        $('td').mouseleave(function(){
+                            $(this).css("border-color", "")
+                        })
+                        $('input').focus(function(){
+                            $(this).css("background-color", "white")
+            })
                     })
             } else {
                 let delete_row = document.getElementById('item-row-0')
@@ -302,7 +355,6 @@
                 console.log('Blank')
             }
         })
-
     };
 
     // ------------------------ REPETITIVE CODE CHANGED TO A FUNCTION --------------------

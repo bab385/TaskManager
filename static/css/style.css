@@ -39,6 +39,10 @@ a.sidebar-link {
     color: white;
 }
 
+.sidebar-button:hover {
+    background-color: rgb(95, 95, 95);
+}
+
 .no-outline:focus {
     outline: none;
 }
@@ -79,10 +83,28 @@ input.complete {
     color: gray;
 }
 
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: .0001rem;
+}
+
 tr {
     display: "";
 }
 
+td,
+th {
+    border-width: 1px;
+    border-color: #dee2e6;
+    padding: .5rem;
+}
+
+/*
+tr:hover {
+    background-color: #e8e8e8;
+}
+*/
 th.sortable {
     cursor: pointer;
 }
